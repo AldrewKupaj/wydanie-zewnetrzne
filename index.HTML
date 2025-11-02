@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Wydania Zewnętrznego v22.0 (Formatowanie)</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0 auto;
+            padding: 20px;
+            max-width: 900px;
+            background-color: #f4f7f6;
+        }
+        h1, h2 {
+            border-bottom: 2px solid #005a9c;
+            color: #005a9c;
+            padding-bottom: 5px;
+        }
+        .sekcja {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .form-grupa {
+            margin-bottom: 10px;
+        }
+        .form-grupa label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #0078d4;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 5px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #005a9c;
+        }
+        #przycisk-generuj {
+            background-color: #107c10;
+            font-weight: bold;
+            width: 100%;
+            padding: 15px;
+        }
+        #przycisk-generuj:hover {
+            background-color: #0a5e0a;
+        }
+        
+        #koszyk-tabela {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        #koszyk-tabela th, #koszyk-tabela td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        #koszyk-tabela th {
+            background-color: #f0f0f0;
+        }
+        #koszyk-tabela td:nth-child(2),
+        #koszyk-tabela td:nth-child(4),
+        #koszyk-tabela td:nth-child(5) {
+            text-align: right;
+        }
+        #koszyk-tabela tfoot td {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        #koszyk-tabela .przycisk-usun {
+            background-color: #d9534f;
+            font-size: 12px;
+            padding: 5px 10px;
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Generator Wydania Zewnętrznego </h1>
+
+    <div class="sekcja">
+        <h2>Dane Dokumentu</h2>
+        <div class="form-grupa">
+            <label for="klient">Klient / Odbiorca:</label>
+            <input type="text" id="klient" placeholder="Wpisz nazwę klienta...">
+        </div>
+    </div>
+
+    <div class="sekcja">
+        <h2>Dodaj Produkt</h2>
+        <div class="grid-container">
+            <div>
+                <h4>1. Wybierz z bazy</h4>
+                <div class="form-grupa">
+                    <label for="produkt-baza">Produkt:</label>
+                    <select id="produkt-baza"></select>
+                </div>
+
+                <div class="form-grupa" id="pole-dlugosc-sodra" style="display: none;">
+                    <label for="dlugosc-sodra">Długość (np. 3.6):</label>
+                    <input type="text" id="dlugosc-sodra" placeholder="Wpisz długość...">
+                </div>
+                
+                <div class="form-grupa">
+                    <label for="ilosc-baza">Ilość:</label>
+                    <input type="text" id="ilosc-baza" placeholder="Wpisz ilość lub działanie (np. 5*2 + Enter)"> 
+                </div>
+                <div class="form-grupa">
+                    <label for="jednostka-baza">Jednostka:</label>
+                    <select id="jednostka-baza">
+                        <option value="m²">m²</option>
+                        <option value="mb">mb</option>
+                        <option value="m³">m³</option>
+                        <option value="szt">szt</option>
+                    </select>
+                </div>
+                <div class="form-grupa">
+                    <label for="cena-baza">Cena (za jednostkę):</label>
+                    <input type="number" id="cena-baza" placeholder="np. 120.50">
+                </div>
+                <button id="dodaj-baza">Dodaj z bazy</button>
+            </div>
+            
+            <div>
+                <h4>2. Wpisz ręcznie</h4>
+                <div class="form-grupa">
+                    <label for="nazwa-recznie">Nazwa produktu:</label>
+                    <input type="text" id="nazwa-recznie" placeholder="Wpisz własną nazwę...">
+                </div>
+                <div class="form-grupa">
+                    <label for="ilosc-recznie">Ilość:</label>
+                    <input type="text" id="ilosc-recznie" placeholder="Wpisz ilość lub działanie (np. 5*2 + Enter)">
+                </div>
+                <div class="form-grupa">
+                    <label for="jednostka-recznie">Jednostka:</label>
+                    <select id="jednostka-recznie">
+                        <option value="m²" selected>m²</option>
+                        <option value="mb">mb</option>
+                        <option value="m³">m³</option>
+                        <option value="szt">szt</option>
+                    </select>
+                </div>
+                <div class="form-grupa">
+                    <label for="cena-recznie">Cena (za jednostkę):</label>
+                    <input type="number" id="cena-recznie" placeholder="np. 120.50">
+                </div>
+                <button id="dodaj-recznie">Dodaj ręcznie</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sekcja">
+        <h2>Produkty do wydania (Koszyk)</h2>
+        <table id="koszyk-tabela">
+            <thead>
+                <tr>
+                    <th>Nazwa Produktu</th>
+                    <th>Ilość</th>
+                    <th>Jm.</th>
+                    <th>Cena (jm.)</th>
+                    <th>Wartość</th>
+                    <th>Akcja</th>
+                </tr>
+            </thead>
+            <tbody id="koszyk-tbody">
+                </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4" style="text-align: right;">SUMA CAŁKOWITA:</td>
+                    <td id="suma-calkowita" style="text-align: right;">0.00 PLN</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="sekcja">
+        <h2>Finalizuj</h2>
+        
+        <label>Status platnosci:</label><br>
+        <input type="radio" id="oplacone" name="status-platnosci" value="Oplacone" checked>
+        <label for="oplacone">Oplacone</label>
+        <br>
+        <input type="radio" id="nieoplacone" name="status-platnosci" value="Nieoplacone">
+        <label for="nieoplacone">Nieoplacone</label>
+        
+        <br><br>
+        
+        <button id="przycisk-generuj">Generuj PDF i pobierz</button>
+        
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+
+            // --- BAZA DANYCH (Wersja 22.0) ---
+            const bazaProduktow = [
+                // Boazerie
+                { nazwa: "Boazeria sodra 12,1", jednostka: "m²", cena: 50 },
+                { nazwa: "Boazeria sodra 14,6", jednostka: "m²", cena: 50 },
+                { nazwa: "Boazeria wyrob wlasny", jednostka: "m²", cena: 50 },
+                { nazwa: "Boazeria wyrob wlasny 2 gatunek", jednostka: "m²", cena: 35 },
+                
+                // Tarasy (POPRAWIONE WIELKIE LITERY)
+                { nazwa: "Taras modrzew gladki", jednostka: "m²", cena: 88 },
+                { nazwa: "Taras modrzew ryflowany", jednostka: "m²", cena: 88 },
+                { nazwa: "Taras modrzew gladki 2 gatunek", jednostka: "m²", cena: 68 },
+                { nazwa: "Taras modrzew ryflowany 2 gatunek", jednostka: "m²", cena: 68 },
+                
+                // Nowe i zaktualizowane
+                { nazwa: "Lamel poziomy", jednostka: "m²", cena: 63 }, 
+                { nazwa: "Deska strukturalna", jednostka: "m²", cena: 80 },
+                { nazwa: "Ruchome deseczki", jednostka: "mb", cena: 10 },
+                { nazwa: "System zaluzji", jednostka: "szt", cena: 600 },
+                
+                // Deski i łaty
+                { nazwa: "Deska calowka", jednostka: "m³", cena: 1000 },
+                { nazwa: "Deska calowka Sodra", jednostka: "m³", cena: 1150 },
+                { nazwa: "Lata", jednostka: "mb", cena: 2.8 },
+                { nazwa: "Kontrlata", jednostka: "mb", cena: 1.7 },
+                { nazwa: "Deska sosna 3,2x16", jednostka: "m³", cena: 1800 },
+                { nazwa: "Deska sosna 3,2x18", jednostka: "m³", cena: 1800 },
+                { nazwa: "Lata suszona strugana", jednostka: "mb", cena: 4.3 }
+            ];
+            // -------------------------
+
+            // --- Lista słów kluczowych do pokazywania pola "Długość" (z v21.0) ---
+            const slowaKluczoweDlugosc = [
+                "Boazeria", 
+                "Taras", 
+                "Deska calowka", 
+                "Lata", 
+                "Kontrlata", 
+                "Lamel poziomy"
+            ];
+            // ------------------------------------------------------------------
+
+            let koszyk = [];
+
+            // Elementy UI
+            const selectBaza = document.getElementById("produkt-baza");
+            const btnDodajBaza = document.getElementById("dodaj-baza");
+            const btnDodajRecznie = document.getElementById("dodaj-recznie");
+            const btnGeneruj = document.getElementById("przycisk-generuj");
+            const tabelaKoszykaBody = document.getElementById("koszyk-tbody");
+            const sumaCalkowitaUI = document.getElementById("suma-calkowita");
+
+            const iloscBaza = document.getElementById("ilosc-baza");
+            const jednostkaBaza = document.getElementById("jednostka-baza");
+            const cenaBaza = document.getElementById("cena-baza");
+            
+            const iloscRecznie = document.getElementById("ilosc-recznie");
+            const jednostkaRecznie = document.getElementById("jednostka-recznie"); 
+            
+            const poleDlugoscSodra = document.getElementById("pole-dlugosc-sodra");
+            const inputDlugoscSodra = document.getElementById("dlugosc-sodra");
+
+
+            // Wypełniamy listę rozwijaną
+            function wypelnijBazeProduktow() {
+                bazaProduktow.sort((a, b) => a.nazwa.localeCompare(b.nazwa));
+                
+                bazaProduktow.forEach(produkt => {
+                    const opcja = document.createElement("option");
+                    opcja.value = produkt.nazwa; 
+                    opcja.textContent = produkt.nazwa;
+                    selectBaza.appendChild(opcja);
+                });
+            }
+
+            // Aktualizacja pól po zmianie produktu
+            function aktualizujPolaBazy() {
+                const nazwaProduktu = selectBaza.value;
+                const produkt = bazaProduktow.find(p => p.nazwa === nazwaProduktu);
+
+                if (produkt) {
+                    jednostkaBaza.value = produkt.jednostka;
+                    cenaBaza.value = produkt.cena;
+                }
+                
+                // Logika pokazywania/ukrywania pola "Długość" (bez zmian)
+                const czyPokazacDlugosc = slowaKluczoweDlugosc.some(slowo => nazwaProduktu.includes(slowo));
+
+                if (czyPokazacDlugosc) {
+                    poleDlugoscSodra.style.display = 'block';
+                } else {
+                    poleDlugoscSodra.style.display = 'none';
+                    inputDlugoscSodra.value = ''; 
+                }
+            }
+            
+            // --- KALKULATOR (Z v18.0) ---
+            function kalkulatorIlosci(event) {
+                if (event.key !== 'Enter') {
+                    return; 
+                }
+                
+                event.preventDefault(); 
+                
+                const input = event.target;
+                let wyrazenie = input.value; 
+                
+                wyrazenie = wyrazenie.replace(/x/gi, '*').replace(/,/g, '.');
+                
+                try {
+                    const czesci = wyrazenie.split('*');
+                    
+                    if (czesci.length > 1) {
+                        const wynik = czesci.reduce((akumulator, czesc) => {
+                            return akumulator * parseFloat(czesc);
+                        }, 1);
+                        
+                        if (!isNaN(wynik)) {
+                            
+                            let jednostka = "";
+                            if (input.id === 'ilosc-baza') {
+                                jednostka = document.getElementById('jednostka-baza').value;
+                            } else if (input.id === 'ilosc-recznie') {
+                                jednostka = document.getElementById('jednostka-recznie').value;
+                            }
+
+                            let finalnyWynik = wynik;
+                            
+                            if (jednostka === 'm³') {
+                                finalnyWynik = wynik * 0.0001;
+                            }
+                            
+                            const zaokraglonyWynik = Math.round(finalnyWynik * 1000) / 1000;
+                            input.value = zaokraglonyWynik;
+                        }
+                    }
+                } catch (e) {
+                    // Ignoruj bledy
+                }
+            }
+            // --------------------------------------------------
+
+
+            // Dodawanie do koszyka
+            function dodajDoKoszyka(nazwa, ilosc, jednostka, cena) {
+                const iloscNum = parseFloat(String(ilosc).replace(/,/g, '.')) || 0;
+                const cenaNum = parseFloat(cena) || 0;
+
+                if (!nazwa || iloscNum <= 0 || !jednostka) {
+                    alert("Wypełnij poprawnie nazwę, ilość (>0) i jednostkę!");
+                    return;
+                }
+                
+                const produkt = { nazwa, ilosc: iloscNum, jednostka, cena: cenaNum };
+                koszyk.push(produkt);
+                aktualizujTabeleKoszyka();
+            }
+
+            // Aktualizacja tabeli na stronie
+            function aktualizujTabeleKoszyka() {
+                tabelaKoszykaBody.innerHTML = "";
+                let sumaCalkowita = 0;
+                
+                koszyk.forEach((produkt, index) => {
+                    const wartosc = produkt.ilosc * produkt.cena;
+                    sumaCalkowita += wartosc;
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${produkt.nazwa}</td>
+                        <td>${produkt.ilosc}</td>
+                        <td>${produkt.jednostka}</td>
+                        <td>${produkt.cena.toFixed(2)} PLN</td>
+                        <td>${wartosc.toFixed(2)} PLN</td>
+                        <td><button class="przycisk-usun" data-index="${index}">Usuń</button></td>
+                    `;
+                    tabelaKoszykaBody.appendChild(tr);
+                });
+                sumaCalkowitaUI.textContent = sumaCalkowita.toFixed(2) + " PLN";
+            }
+
+            // Usuwanie z koszyka
+            function usunZKoszyka(index) {
+                koszyk.splice(index, 1);
+                aktualizujTabeleKoszyka();
+            }
+
+            // Słuchacz dla przycisków "Usuń"
+            tabelaKoszykaBody.addEventListener("click", function(e) {
+                if (e.target && e.target.classList.contains("przycisk-usun")) {
+                    const index = parseInt(e.target.getAttribute("data-index"), 10);
+                    usunZKoszyka(index);
+                }
+            });
+
+            // Słuchacz dla "Dodaj z bazy"
+            btnDodajBaza.addEventListener("click", function() {
+                let nazwa = selectBaza.value; 
+                const ilosc = iloscBaza.value;
+                const jednostka = jednostkaBaza.value;
+                const cena = cenaBaza.value;
+                const dlugosc = inputDlugoscSodra.value; 
+
+                // Logika formatowania nazwy (bez zmian)
+                const czyPokazacDlugosc = slowaKluczoweDlugosc.some(slowo => nazwa.includes(slowo));
+                
+                if (czyPokazacDlugosc && dlugosc.trim() !== "") {
+                    const dlugoscTekst = dlugosc.replace(',', '.');
+                    nazwa = `${nazwa} ${dlugoscTekst}m`; // Format "Produkt X.Xm"
+                }
+                
+                dodajDoKoszyka(nazwa, ilosc, jednostka, cena);
+                iloscBaza.value = "";
+                inputDlugoscSodra.value = ""; 
+            });
+
+            // Słuchacz dla "Dodaj ręcznie"
+            btnDodajRecznie.addEventListener("click", function() {
+                const nazwa = document.getElementById("nazwa-recznie").value;
+                const ilosc = document.getElementById("ilosc-recznie").value;
+                const jednostka = document.getElementById("jednostka-recznie").value;
+                const cena = document.getElementById("cena-recznie").value;
+                
+                dodajDoKoszyka(nazwa, ilosc, jednostka, cena);
+                
+                document.getElementById("nazwa-recznie").value = "";
+                iloscRecznie.value = "";
+                document.getElementById("jednostka-recznie").value = "m²";
+                document.getElementById("cena-recznie").value = "";
+            });
+
+            // --- OBSŁUGA GENEROWANIA PDF (bez zmian od v11.0) ---
+            btnGeneruj.addEventListener("click", function() {
+                if (koszyk.length === 0) {
+                    alert("Nie można wygenerować pustego dokumentu. Dodaj przynajmniej jeden produkt.");
+                    return;
+                }
+                
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF(); 
+
+                const klientInput = document.getElementById("klient").value;
+                const klient = klientInput || "Brak_danych_klienta";
+                const statusPlatnosci = document.querySelector('input[name="status-platnosci"]:checked').value;
+                const dzisiaj = new Date().toLocaleDateString("pl-PL");
+                
+                const statusPliku = (statusPlatnosci === "Oplacone") ? "_Oplacone" : "_NIE_Oplacone";
+                const nazwaPliku = `${klient.replace(/ /g, "_")}${statusPliku}.pdf`;
+
+                
+                doc.setFont("Helvetica", "normal");
+
+                doc.setFont("Helvetica", "bold");
+                doc.setFontSize(20);
+                doc.text("Wydanie Zewnetrzne (WZ)", 105, 25, { align: "center" });
+                
+                doc.setFontSize(12);
+                doc.setFont("Helvetica", "bold");
+                doc.text("Data wystawienia:", 20, 45);
+                doc.text("Klient / Odbiorca:", 20, 55);
+                doc.text("Status platnosci:", 20, 65);
+                
+                doc.setFont("Helvetica", "normal");
+                doc.text(dzisiaj, 75, 45); 
+                doc.text(klientInput || "Brak danych", 75, 55);
+                doc.text(statusPlatnosci, 75, 65);
+
+                const tableHead = [["Lp.", "Nazwa produktu", "Ilosc", "Jm.", "Cena (jm.)", "Wartosc"]];
+                let sumaCalkowitaPDF = 0;
+
+                const tableBody = koszyk.map((produkt, index) => {
+                    const wartosc = produkt.ilosc * produkt.cena;
+                    sumaCalkowitaPDF += wartosc;
+                    return [
+                        index + 1,
+                        produkt.nazwa, 
+                        produkt.ilosc.toString(),
+                        produkt.jednostka,
+                        produkt.cena.toFixed(2) + " PLN",
+                        wartosc.toFixed(2) + " PLN"
+                    ];
+                });
+
+                doc.autoTable({
+                    head: tableHead,
+                    body: tableBody,
+                    startY: 75,
+                    theme: 'grid', 
+                    styles: {
+                        textColor: [0, 0, 0], 
+                        lineColor: [0, 0, 0] 
+                    },
+                    headStyles: {
+                        fontStyle: 'bold',
+                        fillColor: [255, 255, 255], 
+                        textColor: [0, 0, 0]
+                    },
+                    columnStyles: {
+                        0: { halign: 'right', cellWidth: 10 }, 
+                        1: { cellWidth: 70 }, 
+                        2: { halign: 'right' }, 
+                        3: { halign: 'center', cellWidth: 10 }, 
+                        4: { halign: 'right' }, 
+                        5: { halign: 'right' }
+                    }
+                });
+
+                let finalY = doc.autoTable.previous.finalY;
+
+                doc.setFont("Helvetica", "bold");
+                doc.setFontSize(14);
+                doc.text("SUMA:", 130, finalY + 15);
+                doc.text(sumaCalkowitaPDF.toFixed(2) + " PLN", 185, finalY + 15, { align: "right" });
+
+                doc.setFont("Helvetica", "normal");
+                doc.setFontSize(10);
+                doc.text("Wydal z magazynu:", 20, 275); 
+                doc.text("Odebral:", 140, 275); 
+                doc.text(".................................", 140, 280);
+                doc.text(".................................", 20, 280);
+
+                doc.save(nazwaPliku);
+                
+                koszyk = [];
+                aktualizujTabeleKoszyka();
+                document.getElementById("klient").value = "";
+            });
+
+            // --- INICJALIZACJA ---
+            wypelnijBazeProduktow();
+            selectBaza.addEventListener("change", aktualizujPolaBazy);
+            aktualizujPolaBazy(); 
+            
+            iloscBaza.addEventListener("keydown", kalkulatorIlosci);
+            iloscRecznie.addEventListener("keydown", kalkulatorIlosci);
+
+        });
+    </script>
+
+</body>
+</html>
